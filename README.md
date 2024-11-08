@@ -26,7 +26,7 @@
 - Fractal - 碎形
   
 # 實作
-### Factorial
+## Factorial
 ```cpp=
 int factorial(int n) {
   // base case ：如果n為0，回傳值為1
@@ -39,7 +39,7 @@ int factorial(int n) {
   }
 } // end Factorial
 ```
-### GCD
+## GCD
 較多判斷，較慢
 ```cpp=
 int gcd1(int x, int y) {
@@ -68,7 +68,7 @@ int gcd2(int x, int y) {
   } 
 } // end gcd2
 ```
-### Binary search
+## Binary search
 1. 初始化邊界：分左半和右半
 2. 計算中間位置
 3. 比較中間元素與目標值
