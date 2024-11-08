@@ -89,7 +89,6 @@ int binarySearch(int Array[], int first, int last, int value) {
        index = binarySearch(Array, mid-1, last, value);
   }
   return index;
-  } 
 } // end binarySearch
 ```
 ### 
