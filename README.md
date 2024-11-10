@@ -238,59 +238,57 @@ int Combinatorial(int k, int n) {
 - 設計：低耦合的模組 (Loosely coupled modules desired)
 - 與其他函式關聯性越低，耦合性越低。
 - 每個函式只做一件事，大幅減少參數的傳遞。
+## C++ class
+- 物件是類別的實例
+- class定義新的資料型別
+- class包含資料成員(data mnmber)和方法(method) -（member funtions）
+- 預設情況下，class中的所有成員預設都是私有的，但也可以將其指定為公共
+- 封裝隱藏了實作(implementation)細節
+class的定義通常放在header file（標頭檔案，副檔名.h）中，class的方法實作放在implementation file（實作檔案，副檔名.cpp)中。以此將介面與實作分離，增強程式碼組織、可維護性和可用性
 
-
-
-## C++ 類別設計：介面與實作分離
-在C++中，類別的定義通常放在header file（標頭檔案）中，而類別的實作則放在**implementation file（實作檔案，通常是.cpp檔）**中。這樣做有助於將介面與實作分開，提高程式的可維護性與模組化。
-
-Header File (.h 或 .hpp)包含類別的宣告，即類別的介面部分，定義類別的成員變數和成員函數的名稱與型別，但不包含具體的實作細節。
-
-
+header file (.h) 介面的部分：包含類別的結構、資料成員、方法宣告，讓使用者知道有哪些功能可以使用而不需知道如何實作。
 ```cpp=
-// Sphere.h
+// @file Sphere.h
+const double PI = 3.14159;
 class Sphere {
+private:
+    double theRadius;
 public:
     Sphere();
     Sphere(double initialRadius);
     void setRadius(double newRadius);
     double getRadius() const;
     // 其他成員函數宣告...
-private:
-    double theRadius;
 };
 ```
 
-Implementation File (.cpp)包含類別的具體實作，即成員函數的邏輯細節，寫出每個函數是如何工作的。
+Implementation File (.cpp)類別的具體實作，即程式的運算邏輯與如何完成實作。
 
 ```cpp=
-// Sphere.cpp
+// @file Sphere.cpp
 #include "Sphere.h"
 
 Sphere::Sphere() : theRadius(1.0) {}
 
 Sphere::Sphere(double initialRadius) {
-    if (initialRadius > 0)
-        theRadius = initialRadius;
-    else
-        theRadius = 1.0;
+  if (initialRadius > 0)
+    theRadius = initialRadius;
+  else
+    theRadius = 1.0;
 }
 
 void Sphere::setRadius(double newRadius) {
-    if (newRadius > 0)
-        theRadius = newRadius;
-    else
-        theRadius = 1.0;
+  if (newRadius > 0)
+    theRadius = newRadius;
+   else
+     theRadius = 1.0;
 }
 
 double Sphere::getRadius() const {
-    return theRadius;
+  return theRadius;
 }
 ```
-
-- 優點：
-  - 清晰的分工：header file 負責定義類別的接口，而 implementation file 負責具體的實作。這樣，當其他程式需要使用這個類別時，只需包含 header file，而不需要知道具體的實作細節。
-  - 更好的模組化：實作和介面分離可以使類別的修改不會影響使用者，只要介面（header file）保持不變，使用該類別的其他程式不必重編譯。
-
+- 實現 ADT 的模組化：
+  - 透過分離介面和實作，將功能定義於 header file、具體實作於 implementation file，讓使用者只需引用 header file 即可使用類別功能而不需了解內部實作。確保了即使修改實作也不會影響使用者，只要介面保持不變，其他程式無需重編譯。
 
 
