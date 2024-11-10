@@ -32,16 +32,16 @@
   - 呼叫次數成指數增加，尤其是在輸入增大時，容易造成重複計算，占用額外的內存和堆疊空間。
 
 # 遞迴函式
-- Factorial - 階乘 
-- GCD - 最大公因數
-- Search in Array - 搜尋
-- Tower of Hanoi - 河内塔
-- Fibonacci series - 費氏數列
-- Combinatorial numbers - 組合數
-- Fractal - 碎形
+- 階乘(Factorial)
+- 最大公因數(GCD)
+- 搜尋(Search in Array) 
+- 河内塔(Tower of Hanoi)
+- 費氏數列(Fibonacci series)
+- 組合數(Combinatorial numbers)
+- 碎形(Fractal)
   
 # 實作
-## Factorial
+## 階乘
 n !=n×( n−1 )×( n−2 )×…×3×2×1
 ```cpp=
 int factorial(int n) {
@@ -55,7 +55,7 @@ int factorial(int n) {
   }
 } // end Factorial
 ```
-## GCD
+## 最大公因數
 gcd ( a ,b )=gcd ( b ,a mod b )
 兩種做法
 ```cpp=
@@ -91,7 +91,7 @@ int gcd2(int x, int y) {
 | 缺點    |   由於額外的檢查效率稍低。         |   輸入時需要有特定的輸入順序，不然會產生多餘遞迴堆疊。 |
 
 
-## Binary search
+## 二元搜尋 Binary search
 1. 初始化邊界：分左半和右半
 2. 計算中間位置 mid
 3. 比較中間元素與目標值 array[mid], value 
@@ -116,7 +116,7 @@ int binarySearch(int Array[], int first, int last, int value) {
 } // end binarySearch
 ``` 
 相關應用 : 找最大值、找第k小的值。
-## Tower of Hanoi
+## 河内塔
 ```cpp=
 void towers (numDisks, source, dest, auxilaiary) {
   if (numDisk == 1) {
@@ -129,7 +129,7 @@ void towers (numDisks, source, dest, auxilaiary) {
 }
 ```
 
-## Fibonacci series
+## 費氏數列
 Fn = Fn−1 + Fn−2
 兩種做法
 ```cpp=
@@ -159,7 +159,7 @@ std::pair<int, int> Fibonacci2(int k) {
 | 呼叫次數   | 呼叫次數成指數成長 | 呼叫次數呈現性成長 |
 | 優點    | 簡單直接的實施 |  在時間複雜度上更有效率。 |
 | 缺點    |   由於子問題重複，對於值較大的數來說效率非常低。 |   在閱讀上稍微複雜一些。 |
-## Combinatorial numbers
+## 組合數
 N選K的組合數
 c(n,k) = c(n-1, k-1) + c(n-1, k)
 ```CPP=
