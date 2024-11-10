@@ -180,5 +180,115 @@ int Combinatorial(int k, int n) {
 }
 ```
 
-#CH2
+# CH2
+### 資料抽象畫 - Data Abstraction
+- 把想法用符號讓電腦理解，進而幫我們做事。
+
+## 物件導向 oo(object-oriented)
+- 類別 (Class)：
+  - 屬性 (Attributes)：每個類別的變數(data member)，代表類別的狀態或特徵。
+  - 運算 (Behaviors)：操作在類別中的函數(member funtions)，定義物件的操作或計算，並且可以存取物件的屬性。
+  - 建構子 (Constructor)：初始化新建立的物件。
+  - 解構子 (Destructor)：清理物件佔用的資源。
+- 物件 (Object)：
+  - 包含屬性和行為的小單位，大物件是由小物件組成。
+### 封裝 (Encapsulation)
+將物件的屬性和運算封裝在一起並隱藏內部實作細節，使得外部無法直接訪問或修改物件的內部細節，從而限制對內部狀態的直接存取，只暴露必要的介面給外部使用。
+- 通常會將data member設置為私有（private），只能透過member funtions進行訪問。
+### 繼承 (Inheritance)：
+類別可以從其他類別繼承屬性。已存在的類別可以被覆使用。
+- 單一繼承：一個子類別只能繼承一個父類別（基底類別）。
+- 多重繼承：一個子類別同時繼承多個父類別（一個類別透過兩個不同路徑繼承自同一個基底類別時，會出現二義性。菱形問題）。
+### 多型 (Polymorphism)：
+同一介面可以被不同類型的物件實現
+- 方法重載 (Method Overloading)：函數同名但有不同的參數類型或數量。
+- 方法覆蓋 (Method Overriding)：透過繼承和虛擬函數機制，使得在呼叫物件時會根據類型來讓子類別覆寫覆類別。
+## 運算合約 (Operation Contracts)
+- 紀錄方法的使用和侷限性 - 包含目的、假設、輸入、輸出。
+- 前置條件（Preconditions）：在執行操作前必須滿足的條件。
+- 後置條件（Postconditions）：操作執行結束後系統應該滿足的狀態。
+- 指定資料流 - 定義資料如何進入和流出的方法。
+- 不指定模組該如何執行任務 - 只專注於輸入和輸出的正確性。
+- 不正常情況 - 例外狀況
+# ADT(抽象資料類型)
+## 模組化 (Modularity)
+### 定義：透過系統化控制大型程式組件之間的互動，使大型程式的複雜性保持可控。
+- 隔離錯誤 (Isolates errors)
+- 消除冗餘 (Eliminates redundancies)
+### 模組化程式的優點：
+- 更容易撰寫 (Easier to write)
+- 更容易閱讀 (Easier to read)
+- 更容易修改 (Easier to modify)
+- 拆解區塊分別管理，較方便管理、易於維護。
+## 內聚性與耦合性：實現更好的解法
+### 內聚性 (Cohesion)
+- 定義：模組執行單個明確定義的任務。
+- 設計：高度內聚的模組 (Highly cohesive modules desired)
+- 模組被視為單獨個體執行程度越高，內聚性越高。
+- 模組需傳遞的參數較多且不是每次都會使用到。
+### 耦合性 (Coupling)
+- 定義：模組之間依賴的度量。
+- 設計：低耦合的模組 (Loosely coupled modules desired)
+- 與其他函式關聯性越低，耦合性越低。
+- 每個函式只做一件事，大幅減少參數的傳遞。
+## 風格 (Style)：
+- 可修改性 (Modifiability)：撰寫乾淨、可讀、可維護的代碼。
+- 易用性 (Ease of Use)：能夠輕鬆地修改代碼，而不引入錯誤。
+- 安全編程 (Fail-Safe Programming)：確保代碼及其接口易於使用和理解。
+- 除錯 (Debugging)：設計代碼，以確保在發生故障時最小化損害或損失。
+= 測試 (Testing)：識別和修復代碼中的缺陷的過程。確保代碼按預期工作，並滿足所需的規範。
+
+
+## C++ 類別設計：介面與實作分離
+在C++中，類別的定義通常放在header file（標頭檔案）中，而類別的實作則放在**implementation file（實作檔案，通常是.cpp檔）**中。這樣做有助於將介面與實作分開，提高程式的可維護性與模組化。
+
+Header File (.h 或 .hpp)包含類別的宣告，即類別的介面部分，定義類別的成員變數和成員函數的名稱與型別，但不包含具體的實作細節。
+
+
+```cpp=
+// Sphere.h
+class Sphere {
+public:
+    Sphere();
+    Sphere(double initialRadius);
+    void setRadius(double newRadius);
+    double getRadius() const;
+    // 其他成員函數宣告...
+private:
+    double theRadius;
+};
+```
+
+Implementation File (.cpp)包含類別的具體實作，即成員函數的邏輯細節，寫出每個函數是如何工作的。
+
+```cpp=
+// Sphere.cpp
+#include "Sphere.h"
+
+Sphere::Sphere() : theRadius(1.0) {}
+
+Sphere::Sphere(double initialRadius) {
+    if (initialRadius > 0)
+        theRadius = initialRadius;
+    else
+        theRadius = 1.0;
+}
+
+void Sphere::setRadius(double newRadius) {
+    if (newRadius > 0)
+        theRadius = newRadius;
+    else
+        theRadius = 1.0;
+}
+
+double Sphere::getRadius() const {
+    return theRadius;
+}
+```
+
+- 優點：
+  - 清晰的分工：header file 負責定義類別的接口，而 implementation file 負責具體的實作。這樣，當其他程式需要使用這個類別時，只需包含 header file，而不需要知道具體的實作細節。
+  - 更好的模組化：實作和介面分離可以使類別的修改不會影響使用者，只要介面（header file）保持不變，使用該類別的其他程式不必重編譯。
+
+
 
