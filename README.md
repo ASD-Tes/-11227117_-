@@ -443,7 +443,7 @@ struct Node {
     - 由於有虛擬頭節點，插入或刪除操作不需要分別處理頭節點和其他節點，從而去除了例外狀況。  
 
 
-# 變形：雙向連結串列 (Doubly Linked Lists)
+## 變形：雙向連結串列 (Doubly Linked Lists)
 - 每個節點都指向其前驅 (precede) 和後繼 (next)的指標。
 - 插入和刪除操作比單向連結串列更複雜。
 - 通常包含一個虛擬頭節點 (dummy head node)，以簡化程式消除處理特殊情況。
