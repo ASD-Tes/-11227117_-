@@ -1,539 +1,733 @@
-##### 甲班11227117_吳彥霖
-# CH1 
-## 遞迴-Recursion
-- 將大問題分解成更小的相同問題，**分而擊之**。
-- 迭代的替代方案
-- 用box trace視覺化遞迴函數的呼叫堆疊
- ### 遞迴的組成
-  - **基本情況 (Base case)** : 問題簡化到最基本的形式，停止遞迴函數呼叫直接傳回一個結果。
-  - **遞迴情況 (Recursive case)** : 函數內部再次呼叫自身，以解決一個相同但較小或簡化的問題。
- ### 構建遞迴的問題與步驟
-1. 如何用同類型但較小的問題來定義該問題？
-   - **遞迴定義** - 找到問題可以拆解的部分。 
-3. 每次遞迴呼叫要如何簡化問題？
-   - **問題簡化** - 每次遞迴呼叫都將原問題簡化成較小的問題。
-5. 什麼問題的實例可以作為基本案例？
-   - **終止條件** - 問題最簡的基本情況。
-7. 隨著問題簡化，是否會達到基本狀況？
-   - **保證終止** - 確認一定會到達基本條件。
+# 第一章 優先佇列(Priority Queues)
+## 原理
+- 在佇列的 **FIFO** 規則裡加上 **優先級** 的比較，依 **時間軸** 存取順序 (進Block box) 再依 **優先級** 取出--刪除順序。(本質上像是排序)
 
+以排序實現PQ : info  --> pqInsert() -->  [sorting Algorithm]  --> pqDelete() -->  排序 \
+Selection sort : pqInsert() : O(1)，pqDelete() : O(n) ;\
+Insertion sort : pqInsert() : O(n)，pqDelete() : O(1) ;
+|sorting Algorithm |stable/unstable | worst case | average case  | best case |
+|:-----------:|:-------------:|:-----:|:-----------:|:-------------:|
+| Selection sort   | unstable | n<sup>2</sup> | n<sup>2</sup> | n<sup>2</sup> |
+| Bubble sort      | stable   | n<sup>2</sup> | n<sup>2</sup> | n             |
+| Insertion sort   | stable   | n<sup>2</sup> | n<sup>2</sup> | n             |
+| Mergesort        | stable   | n * logn      | n * logn      | n * logn      |
+| Quicksort        | unstable | n<sup>2</sup> | n * logn      | n * logn      |
+| Radixsort        | stable   | n             | n             | n             |
+| Tree sort        | unstable | n * logn      | n * logn      | logn          |
+| Heap sort        | stable   | n * logn      | n * logn      | n * logn      |
 
-# 線性遞迴跟二元遞迴
-### 線性遞迴 : 每一次都只處理一個子問題，然後將這個子問題再拆解成更小的部分，直到問題變得簡單到可以直接解決為止。
-- 優點 : 實現簡單且易於理解。
-  - 只適用於可以被分解成單一子問題的問題，不適合需要同時處理多個子問題的場景，例:迭代元素查找、階乘計算、簡單的數學計算
-- 缺點 : 可能導致堆疊溢位和效率問題
-  - 由於每次只處理一個問題所以在處理大型問題時可能會遇到效率低下、堆疊溢位和高記憶體使用。
- 
- ### 二元遞迴 : 每次呼叫遞迴時，會分裂成兩個子問題產生兩個新的遞迴分支，只需選擇問題的其中一半去解決。
-- 優點 : 高效處理分治問題，降低每次要解決問題的規模，
-  - 能夠解決更複雜的問題，適合於需要同時處理多個子問題的情況，例如組合問題和樹結構遍歷。
-- 缺點 : 效率低，可能會造成內存不足或堆疊溢位
-  - 呼叫次數成指數增加，尤其是在輸入增大時，容易造成重複計算，占用額外的內存和堆疊空間。
+## Heap
 
-# 遞迴函式
-- 階乘(Factorial)
-- 最大公因數(GCD)
-- 搜尋(Search in Array) 
-- 河内塔(Tower of Hanoi)
-- 費氏數列(Fibonacci series)
-- 組合數(Combinatorial numbers)
-- 碎形(Fractal)
+info --> 插入:O(logn) -->  [max/min-heap] --> 取出:O(1) -->  Complete Binary Tree/Balance Binary Tree\
+不是實際上去做排序，但是可以滿足取出最大值/最小值 (max-heap/min-heap) 的資料結構。 
+- 適合用陣列來做，以二元樹呈現是 **平衡樹/完全樹**。
+- <ins> 保證max/min在 **root** 的位置 </ins>，其他不保證。
+- 每條從 root 延伸出來的枝 (路徑) 一定是<ins>相對排序過 </ins>。 
+
+### Build heap
+架構
+```cpp==
+template <class ItemType>
+struct HeapType
+{ void ReHeapDown(int, int); //新增node
+  void ReHeapUp(int, int);   //刪除node
+  ItemType * element;
+  int numElements;  //heap element
+};
+```
+### ReHeapUp 新增node
+- 依照完全樹 (Complete Binary Tree) 的結構新的節點加入樹的最底層的最右邊，再以 **bubble sort** 的方式向上比較做排序。
+
+![1-2](https://github.com/user-attachments/assets/333b0183-9dcd-4ed1-83fc-649452a919ac)
+
+### ReHeapDown 刪除node 
+一. 取出樹根
+- 為了維持完全樹的的結構，刪除 node 時，只做內容的更動，盡量不去更動位置。
+- 將要刪除的 node 與 bottom (樹最底層最右邊)對調並移除再重新維持heap的結構並更新 bottom。
+- 註: 先比較左右分支大小再進行排序，總的來說仍是走root的單邊子樹。\
   
-# 實作
-## 階乘
-n !=n×( n−1 )×( n−2 )×…×3×2×1
-```cpp=
-int factorial(int n) {
-  // base case ：如果n為0，回傳值為1
-  if (n == 0) {
-    return 1;
-  }
-  // recursive case ：n的階乘等於n乘以(n-1)的階乘
-  else {
-    return n * factorial(n - 1);
-  }
-} // end Factorial
-```
-## 最大公因數
-gcd ( a ,b )=gcd ( b ,a mod b )
-兩種做法
-```cpp=
-int gcd1(int x, int y) {
-  // base case ：如果y為0，回傳值為x
-  if (y == 0) {
-    return x;
-  }
-  // recursive case ：x > y，gcd1(x ,y) = gcd1(y ,x % y)
-  else if (y > x) {
-    return gcd1(x, y % x);
-  } else {
-    return gcd1(y, x % y);
-  }
-} // end gcd1
-```
-```cpp=
-int gcd2(int x, int y) {
-  // base case ：如果x % y為0，回傳值為y
-  if (x % y == 0) {
-    return y;
-  }
-  // recursive case ：gcd2(x ,y) = gcd2(y ,x % y)
-  else {
-    return gcd2(y, x % y);
-  } 
-} // end gcd2
-```
-|           | gcd1           | gcd2  |
-|:-----------:|:-------------:|:-----:|
-| 檢查   | 檢查哪個數字作為呼叫自身的第一個參數 | 直接做輾轉相除法的計算，無需額外檢查 |
-| 優點    | 無論輸入非0數字的大小順序如何，都可以正常計算。 |  更簡單、更有效率(輸入值須遵循特定條件) 。|
-| 缺點    |   由於額外的檢查效率稍低。         |   輸入時需要有特定的輸入順序，不然會產生多餘遞迴堆疊。 |
+![2-1](https://github.com/user-attachments/assets/fc11d343-cf4b-4c23-b96d-d1e10fd505b8)
 
+二. 取出非樹根的 node 
+- 同樣是先交換後進行維持 heap 的結構，但多了向上比較且依照 bottom 的位置，可能會做不只 root 單邊子樹的比較。
 
-## 二元搜尋 Binary search
-1. 初始化邊界：分左半和右半
-2. 計算中間位置 mid
-3. 比較中間元素與目標值 array[mid], value 
+![3-1](https://github.com/user-attachments/assets/e9fa774c-df62-4473-8bf3-aac7f21b7e49)
+
+## 霍夫曼編碼 (Huffman code)
+由葉開始建立一棵二元樹，非二元搜尋樹。\
+每一個葉節點的路徑都有一對應的編碼且每個編碼 **不是其餘任何編碼的前綴(prefix)**。
+
+![4-1](https://github.com/user-attachments/assets/1bb1f5cc-ce7a-4713-a9fd-00bdd6cb8ce5)
+
+### 如何建樹
+先統計出每一個元素/字母的使用頻率再以頻率最小的兩節點開始建樹。\
+兩字母頻率相加建立新的節點，接著再以新節點跟剩餘的 node 反覆找 **最小** 的兩節點相加，直到建立完整二元樹。
+
+| Character | A | B | C | D | E |
+|:-----:|:----:|:-----:|:---:|:----:| :----:|  
+| Frequency | 17 | 12 | 12 | 27 | 32 |
+
+![5-1](https://github.com/user-attachments/assets/c92f9112-d27f-4203-8408-3efd29a463b2)
+
+### 用陣列實作 heap 的方式
+建立 min-heap 然後以 delete,delete,insert 的方式反覆取出想要的資料再放回去更新後資料。
+
 ```cpp=
-int binarySearch(int Array[], int first, int last, int value) {
-  // base case ：first > last，回傳-1表示目標值不在陣列中
-  int index;
-  if (first > last) {
-    index = -1;
-  // recursive case ：計算中間位置，比較中間元素與目標值
-  } else {
-    int mid = (first + last) / 2;
-    if (value == Array[mid]) {
-      index = mid;
-    } else if {
-      index = binarySearch(Array, first, mid-1, value);
-    } else {
-       index = binarySearch(Array, mid-1, last, value);
+bool heapEmpty();
+void heapInsert(heapItemType& newItem);   // Insert item into a heap
+void heapDelete(heapItemType& rootItem);  // Retrieves and delete the item in the root of the heap
+void heapBuild(int root)                  // Convert the semi-heap rooted at index root into a heap 
+HeaoItemTyoe items[MAX_Heao];             // Array of heap items
+in size;                                  // Number of heap items
+```
+#### heaoInsert(& newItem)
+- step1 : 將新資料新增在 bottom。
+- step2 : 依 **(子 - 1)/2 = 父** 的規則從陣列裡找位置去向上做大小比較、排序。\
+註: 保證 root 一定是 max/min 但其他不保證是完整排序。\
+補充: semi-heap是指除了 root 其他子樹皆是 heap 的情況。\
+
+![6-1](https://github.com/user-attachments/assets/6acd70f5-3a62-4cd1-89bf-b9dfc981e9d9)
+
+```cpp=
+{ if ( size >= MAX_Heap )
+    throw HeapException("Heap Full");
+  item[size] = newItem;   // put the new item at the end of heap (bottom)
+  int place = size;       
+  int parent = (place - 1)/2;  // trickle new item up to its position
+  while ( (parent >= 0) && (items[place] > items[parent]) )
+  { HeapItemType temp = items[place];
+    items[parent] = items[size];
+    items[place] = temp;   //
+    place = parent;
+    parent = (place - 1)/2;
+  }
+  ++size
+}
+```
+#### heapDelete(& rootItem)
+- step1 : 取出 root 的內容。
+- step2 : 複製 bottom 的內容到root。
+- step3 : 移除 bottom (--size)。--> 變semi-heap 
+- step4 : 重新排序成max/min-heap。 => heapRebuild()
+
+```cpp=
+{ if ( heapIsEmpty() )
+    throw HeapException("Heap Empty");
+  rootItem = item[0];
+  --size;
+  if ( !heapIsEmpty() )
+  { items[0] = item[size];
+    heapRebuild(0)
+  }
+}
+```
+#### heapRebuild(int root)
+```cpp=
+{ int child = 2 * root + 1;
+  if ( child < size )
+  { int rightChild = child + 1;
+    if ( (rightChild < size) && (items[rightChild] > items[child]) )
+      child = rightChild;
+    if ( items[root] < items[child] )
+    { HeaoItemType temp = items[root]; 
+      items[root] = items[child];
+      items[child] = temp;
+      heapRebuild(child);
     }
   }
-  return index;
-} // end binarySearch
-``` 
-相關應用 : 找最大值、找第k小的值。
-## 河内塔
-```cpp=
-void towers (numDisks, source, dest, auxilaiary) {
-  if (numDisk == 1) {
-    std::cout << "Move from " << source << "to " << dest << std::endl;
-  } else {
-    towers (numDisks - 1, source, auxilaiary, dest);
-    towers (1, source, dest, auxilaiary);
-    towers (numDisks - 1, auxilaiary, dest, source);
-  }
 }
+```
+## 陣列直接轉成堆積(heap)
+call heapRebuild(i);
+- 方式一 : 逐一添加到 bottom 再移動到正確的位置。
+- 方式二 : 一次加入全部的資料建成二元樹再由下而上解決 semi-heap 的問題直到 root。
+
+方式二範例 : call heapRebuild(i)，i = 2,1,0 註 i 的範圍為除了葉節點以外的node。
+
+![7-1](https://github.com/user-attachments/assets/4a600f4e-829c-409e-9bb8-5db31a47c0af)
+
+如果是從上而下 i = 0,1,2 會不會出現錯誤?
+
+![8-1](https://github.com/user-attachments/assets/a0c01c40-3860-4120-9376-96fc659eb945)
+
+- 自己想法 : 可能會出現 max/min 在最底部但因比較順序的關係而無法與更上層的做比較導致 heap 結構錯誤。
+- 師 : heapRebuild的目的就是想讓標示為 root 的位置存放正確的值，所以當 max/min 不是在 root 的下一個level 就可能雌在錯誤，因由上而下上層不會在比較、更動。 
+
+## 堆積排序 (Heap Sort) 
+透過滿足 heap 的的順序性質，將未排序得資料陣列轉換成 heap ，做 **n** 次直到沒有未排序的資料。( O(n * logn) )
+- step1 : 每次要取的資料在 root 的的位置上，透過與 bottom 交換放置到 **未排序區** 的尾巴。O(1)
+- step2 : 剩餘的資料重新建成 heap。O(logn)
+
+註 : 跟 selection sort 的概念一樣，分sorted、unsorted，從unsorted取出要的資料放置unsorted的尾巴。- sorted
+
+![9-1](https://github.com/user-attachments/assets/dccdb94d-0c8f-4cfa-bb47-eff476709504)
+### 用指標實作 heap 的方式
+結構 : 一個節點含自身內容、父節點與子節點的位置資訊。
+```cpp=
+typedef struct heapItem {
+  int value;
+  struct heapItem *parent;
+  struct heapItem *leftchild;
+  struct heapItem *rightchild;
+} heapNode;
+
+typedef enum { LEFT, RIGHT }
+```
+在添加新節點，直接指向空節點新增內容實質上沒有什麼意義，所以改由他的父節點去做判斷節點應該接在哪會比較好用。- parentOfBottom
+```cpp=
+heapNode *heaoRoot, *parentOfBottom = NULL;  //the parent of bottom
+whichChild childAsBottom;  //either left or right child
+heapInsert():       // find the next bottom
+if ( heapRoot == NULL )
+{ ...                //initialize heapRoot
+  parentOfBottom = heapRoot;
+  childAsBottom = LEFT;
+} else if ( childAsBottom == LEFT )
+{ heapNode *newNode = new heapNode    //move the bottom to the right child
+  heapNode->value = ...;
+  newNode->parent = parentOfBottom;
+  newNode->leftChild = newNode->rightChild = NULL;
+  parentOfBottom->leftChild = newNode;
+  childAsBottom = RIGHT;
+} else if ( childAsBottom == RIGHT )
+{ ...                              //traerse the path upward to find the first left child  
+  childAsBottom = LEFT;
+  heapNode *pre, *cur = parentOfBottom;
+  while ( cur != heapRoot )
+  { pre = cur;
+    cur = cur->parent;
+    if (pre == cur->rightChild)
+    { cur - cur->rightChild;
+      break;                     //the first legt child has a sibling    
+    }
+}  //tracerse the path upward
+while ( cur!= NULL ) { pre = cur; cur = cur->leftChild; }
+parentOfBottom = pre;
 ```
 
-## 費氏數列
-Fn = Fn−1 + Fn−2
-兩種做法
+#### heapSort(int)
+- step1 : 將陣列轉換為堆 (heap)。
+- step2 : 將堆的根（max/min）與堆的最後一個元素 (bottom) 交換。
+- step3 : 將得到的 semi-heap 重新轉換為堆 (heap)。
 ```cpp=
-int Fibonacci1(int n) {
-  if (n <= 2) {
-    return 1;
-  } else {
-    return Fibonacci1(n-1) + Fibonacci1(n-2);
+{ int index;
+  for (index = (size)/2; index >= 0; index--)
+    ReheapDown(index, size);     <=> heapRebuild(index)
+  for (index = size -1; index >= 1; index--)  
+  { swap (items[0], items[index])
+    ReheapDown(0, index);          <=> heapRebuild(0)
   }
 }
 ```
-```cpp=
-std::pair<int, int> Fibonacci2(int k) {
-  // base case：若 k = 1，則回傳 (1, 0)，對應於 (F1, F0)
-  if (k == 1) {
-    return {1, 0};
-  // recursive case：呼叫 Fibonacci2(k-1) 並返回 (F(k), F(k-1))
-  } else {
-    std::pair<int, int> previous = Fibonacci2(k - 1);
-    // 透過前一對結果計算當前 Fibonacci 數列值 (F(k), F(k-1))
-    return {previous.first + previous.second, previous.first};
-  }
-}
-```
-|           | Fibonacci1           | Fibonacci2  |
-|:-----------:|:-------------:|:-----:|
-| 呼叫次數   | 呼叫次數成指數成長 | 呼叫次數呈現性成長 |
-| 優點    | 簡單直接的實施 |  在時間複雜度上更有效率。 |
-| 缺點    |   由於子問題重複，對於值較大的數來說效率非常低。 |   在閱讀上稍微複雜一些。 |
-## 組合數
-N選K的組合數
-c(n,k) = c(n-1, k-1) + c(n-1, k)
-```CPP=
-int Combinatorial(int k, int n) {
-  // base case：若 k = 0，不取，回傳1
-  if (k == 0) {
-    return 1;
-  // base case：若 k = n，一次取全部，回傳1
-  } else if (k == n) {
-    return 1;
-  // base case：若 k > n，無法取大於自己的數量，回傳0
-  } else if (k > n) {
-    return 0;
-  // recursive case：0 < k < n
-  } else {
-    return  Combinatorial(n - 1, k - 1) +  Combinatorial(n - 1, k);
-  }
-}
-```
+### 比較Heap sort 與 Mergesort、Quicksort
 
-# CH2
-## 資料抽象化 - Data Abstraction
-- 將資料和操作隱藏於介面之後，透過介面與實作分離來簡化複雜性，使程式更安全且易於設計。
-## 物件導向 oo(object-oriented)
-- 類別 (Class)：
-  - 屬性 (Attributes)：每個類別的**變數(data member)**，代表類別的狀態或特徵。
-  - 運算 (Behaviors)：操作在類別中的**函數 (member funtions) / 方法 (methods)**，定義物件的操作或計算，並且可以存取物件的屬性。
-  - 建構子 (Constructor)：初始化新建立的物件。
-  - 解構子 (Destructor)：清理物件佔用的資源。
-- 物件 (Object)：
-  - 包含屬性和行為的小單位，大物件是由小物件組成。
-### 封裝 (Encapsulation)
-將物件的屬性和運算封裝在一起並**隱藏內部實作細節**，使得外部無法直接訪問或修改物件的內部細節，從而限制對內部狀態的直接存取，只暴露必要的介面給外部使用。
-- 通常會將data member設置為私有（private），只能透過member funtions進行訪問。
-### 繼承 (Inheritance)：
-類別可以從其他類別繼承屬性。已存在的類別可以被**重複使用**。
-- 單一繼承：一個子類別只能繼承一個父類別（基底類別）。
-- 多重繼承：一個子類別同時繼承多個父類別（菱形問題 : 一個類別透過兩個不同路徑繼承自同一個基底類別時，會出現二義性）。
-### 多型 (Polymorphism)：
-同一介面可以被不同類型的物件實現
-- 方法重載 (Method Overloading)：函數同名但有不同的參數類型或數量。
-- 方法覆蓋 (Method Overriding)：透過繼承和虛擬函數機制，使得在呼叫物件時會根據類型來讓子類別覆寫覆類別。
-## 運算合約 (Operation Contracts)
-- 用於程式碼文件化，尤其是**標頭檔案**。
-- 紀錄方法的使用和侷限性 - 在分析階段開始撰寫契約，並在設計階段完成，包含目的、假設、輸入、輸出。
-- 前置條件（Preconditions）：在執行操作前必須滿足的條件。
-- 後置條件（Postconditions）：操作執行結束後系統應該滿足的狀態。
-- 指定資料流 - 定義資料如何進入和流出的方法。
-- **不指定**模組該如何執行任務 - 只專注於輸入和輸出的正確性。
-- 不正常情況 - 例外狀況
-## 程式設計中的關鍵問題 ：
-- 可修改性 (Modifiability) ：程式設計應是設計給未來用的，應確保變更資料結構或功能時對其他程式碼的影響是最小。
-- 風格 (Style) : 使用通用風格讓程式碼更易讀，結構清晰，有助於後續的團隊合作和程式維護。
-- 易用性 (Ease of Use) ：設計得直觀，介面簡潔，以便於開發者快速理解和使用。
-- 安全編程 (Fail-Safe Programming) ：設計應防止錯誤操作，並提供例外處理機制來避免程式崩潰或數據損壞。
-- 除錯 (Debugging) ：需設置良好的除錯機制，以便開發者能夠輕鬆找到錯誤並修正。
-= 測試 (Testing) ：需要經過嚴謹的測試，以確保功能正確、穩定，並在各種情況下都能正常運作。
-# ADT(抽象資料類型)
-- **定義了資料的行為和操作，而不關心其具體實現。**
-## 模組化 (Modularity)
-### 定義：透過系統化控制大型程式組件之間的互動，使大型程式的複雜性保持可控。
-- **隔離錯誤 (Isolates errors)**
-- **消除冗餘 (Eliminates redundancies)**
-### 模組化程式的優點：
-- 更容易撰寫 (Easier to write)
-- 更容易閱讀 (Easier to read)
-- 更容易修改 (Easier to modify)
-- 拆解區塊分別管理，較方便管理、易於維護。
-## 內聚性與耦合性：實現更好的解法
-### 內聚性 (Cohesion)
-- 定義：模組執行單個明確定義的任務。
-- 設計：**高內聚**的模組 (Highly cohesive modules desired)
-- 模組被視為單獨個體執行程度越高，內聚性越高。
-- 模組需傳遞的參數較多且不是每次都會使用到。
-### 耦合性 (Coupling)
-- 定義：模組之間依賴的度量。
-- 設計：**低耦合**的模組 (Loosely coupled modules desired)
-- 與其他函式關聯性越低，耦合性越低。
-- 每個函式只做一件事，大幅減少參數的傳遞。
-## C++ class
-- 物件是類別的**實例**
-- class定義新的資料型別
-- class包含**資料成員 (data mnmber)** 和 **方法 (method)** -（member funtions）
-- 預設情況下，class中的所有成員預設都是**私有的**，但也可以將其指定為**公共 (public)**。
-- 封裝隱藏了實作(implementation)細節
-- class的定義通常放在**header file（標頭檔案，副檔名.h)** 中，class的方法實作放在**implementation file（實作檔案，副檔名.cpp)** 中。以此將介面與實作分離，增強程式碼組織、可維護性和可用性 
-### 建構子 (constructors) : 向電腦請求記憶體來儲存資料
-  - 建立並初始化類別的新實例 ：建構函數負責創建類別的實例並進行初始化。**在聲明類別實例時會自動調用建構函數。**
-  - 與類別同名，且無返回型別：建構函數的名稱與類別名稱相同，並且沒有返回型別，甚至沒有 void。
-  - 類別可以有多個建構函數：一個類別可以有多個建構函數（透過不同的參數來區分），這種特性稱為「建構函數重載」。
-  - 預設建構函數：若建構函數沒有任何參數，則稱為預設建構函數。若類別中未定義任何建構函數，編譯器會自動生成一個預設建構函數。
-  - 使用作用域解析運算子 (scope resolution operator) "::"。
-  - 設置資料成員的初始值：建構函數的主要功能是為物件的資料成員設定初始值。在建構函數內可以直接設置這些成員，也可以使用初始化列表進行初始設置。
-  - 使用初始化列表：初始化列表是一種直接在建構函數名稱後方、函數主體前使用的語法，可以更有效地初始化資料成員。
-    ```cpp=
-    Sphere::Sphere() : theRadius(1.0) { //預設初始值為1.0， 
+|        | Mergesort | Quicksort|
+|:------:|     :----:|:-----:   |
+|   相同 | O(n * logn) in both the worst and average cases | O(n * logn) in the average case | 
+|   差異 | heap sort does not require a second array | Quicksort is generally the preferred sorting method, even though it has poor worst-case efficiency O(n²)。 | 
+
+# 第二章
+## Double-ended Priority Queues (DEPQ)
+### Min-max Heap
+跟 max/min-heap 一樣是 Complete Binary Tree, 時間效率 O(logn)。
+
+picture[]
+是 max-heap、min-heap結合，一層 max-heap 一層 min-heap 交錯，奇數層是一類，偶數層是一類。\
+root 是 Tree 的最小值 且 
+- 位於 min level 以 x 為 root 之子樹中，x 為最小值。
+- 位於 max level 以 x 為 root 之子樹中，x 為最大值。
+  
+#### Min-max Heap : Insert
+- step1 : 選擇在哪一個 level，min/max。
+- step2 : 檢查是否要與父節點交換。
+  - 否 : ReHaepUp 跟父節點交換。
+  - 是 : ReHaepUp 跟祖父節點交換。
+  - 一直往上比較直到 root。
+  
+註 : 在陣列裡的位置關係 parent = (child - 1)/2， grand = (child - 3)/4。
+註 : 若將 max-min level 各自拆開組合就是一個 max-heap 一個 min-heap。\
+註 : 要知道節點新增在哪一層才好知道要比較甚麼。\
+     items[i] => level = ((int)float(log2(i+1)) % 2) ? MAX : MIN;
+
+#### Min-max Heap : Delete
+- step1 : root 跟 bottom 做交換。
+- step2 : 檢查是否比子節點大。
+  - 否 : ReheapDown 跟子節點交換。
+  - 是 : ReheapDown 跟孫子節點交換。
+  - 一直往下比較直到葉節點。
+註 : 如果剛好在到葉節點前就不用再交換，就可以停下比較。
+
+### 總結
+性質 :
+- 可以看成是由獨立的三棵樹所組成 : max-heap(黑) + min-heap(橘) + max-heap(黑)
+- 每棵樹的節點最多有四個小孩子。
+- 每個在 max-heap 的節點都有一個父節點在 min-heap。
+- 存在橘色的比較小，黑色的比較大的關係。 (min-max heap)
+
+在 max-heap 插入時，先與 min-heap 檢查順序關係。
+1. 如果順序正確，則只需專注於當前的 max-heap ，無需理會 min-heap 或另一個 max-heap 。(皆符合 heap 性質)
+2. 如果順序錯誤，則進行交換，然後轉由專注於當前的 min-heap 。
+- 若是 Insert 在向上比較的過程發現不需要交換，那就可以提前停止，因為該位置以上的節點已經符合 Min-Max Heap 的特性。
+
+在 max-heap 刪除時，與 bottom 交換 ，然後 min-heap 檢查順序關係。
+1. 如果順序正確，則只需專注於當前的 max-heap ，無需理會 min-heap 或另一個 max-heap。(皆符合 heap 性質)
+2. 如果順序錯誤，則進行交換，然後繼續維持 max-heap 的結構。
+  - 若是出現需要與 min-heap 交換的情況，只需交換且 min-heap 其他節點結構是對的。
+  - 特殊情況 : 如果刪除的點在 max-heap 上且 max-heap 的葉節點下面還有 min-heap 的節點，那就需要檢查。 
+- 由於 Delete 會破壞結構，所以需要向下排序，在向下比較的過程發現不需要交換，那就可以提前停止，因為該位置以下的節點已經符合 Min-Max Heap 的特性。
+
+### Double-ended Heap (DEAP)
+兩個 heap 組合體，左邊是 min-heap ，右邊是 max-heap 。 
+兩邊有對應關係 : 對應位置 (左右對稱過去的位置)
+root 是空節點。數字對應陣列的位置。
+
+#### Double-ended Heap : Insert
+- step1 : 新增新節點。(除去 root 跟 heap 一樣由上到下由左至右)
+  - 情況一 : 新節點在右邊 -> 跟左邊對應位置比較。
+  - 情況二 : 新節點在左邊 -> 跟右邊對應位置的父節點比較。
+- step2 : 檢查新節點的對應位置的大小關係是否正確。
+- step3 : 維護新增節點那邊 heap 的結構。
+  - 交換過去的值一定符合 heap 的結構。
+ 
+#### Double-ended Heap : Delete
+- step1 : 刪除節點。(不需要檢查左右對應大小，無意義)
+- step2 : 將 bottom 換到刪除節點的位置。
+- step3 : 維護刪除節點那邊的 heap 。(上下) 
+- step4 : 左右對應位置比較，判斷是否需再交換
+  - 註 : 如果出現對應位置下面還有 **葉節點** ，則需要在多往下比較。 (最多差距一層) 
+  - 是 : 如果有交換，維護刪除節點這邊的 heap 結構。
+  - 否 : 兩邊 heap 結構都正確。
+
+
+### 總結
+- 建構好 DEAP 也間接排序好陣列裡的數字大小。
+- 在刪除節點並重新維護節點的位置時，如果有走到 **葉節點** 或對應位置有 **葉節點** 才須與對應位置做比較，否則不用再比較。
+  - 註 : 如果是在 min-heap ，那重新維護完後的節點的對應位置一定比節點的下一層大，而節點的下一層一定比節點大，故不用特別比較檢查可以直接停止。
+
+## Forest (union) of Heaps
+### Binomial Heap
+- 二項堆（Binomial Heap）是一種由多個二項樹（Binomial Trees）組成的資料結構，這些樹滿足堆積性質（Heap Property）且具有不同的階數（Order）。 time : 最多  2倍的O(logn)
+  - 兩棵具有相同階數的二項樹可以合併成一棵更高階的二項樹。
+  - 結構是唯一的。類似二進位。
+  - 每種大小的樹最多存在一棵 k<sup>n</sup> n = 1,2,3.... 有相同的就要合併。
+  - 每一次合併只需要比較 root 。
+  - 在合併時同樣的最多只能三個，且 root 較小的兩個先合併。(可能再找的時候)
+
+比較適合用指標 - 使用鏈結串列 (linked kist)。\
+且結構比較規律但不得從非 root 的地方取，會破壞結構。
+
+#### Binomial Heap : Insert
+- step1 : 插入 root 的鏈結串列
+- step2 : 合併相同的。
+
+#### Binomial Heap : Delete
+- step1 : 從 root 的鏈結串列找出最小值。
+- step2 : 刪除最小值。
+- step3 : 被移除的節點的 child 重新連結進鏈結串列。
+- step4 : 相同的重新合併。
+註 : 在合併時同樣的最多只會有三個。最小的的 binomial heap 先合併然後 root 較小的兩個先合併。(可能再找的時候比較方便)
+
+### Fibonacci Heap : defintion
+- 樹根之間（Tree roots）使用 **雙向鏈結串列（Doubly Linked List）** 連接
+  - 所有根節點組成一個循環的雙向串列，方便快速插入與合併
+- 父節點與子節點之間，也是雙向鏈結串列
+  - 每個節點的子節點們彼此也透過雙向鏈結串列連接，方便未來操作（如減少鍵值時切斷子節點）
+- 合併 (merage) : 合併兩個 Fibonacci Heap 時，只需要把它們的根節點串列直接串接起來。
+
+# 第3章 有下而上成長的平衡樹
+## 搜尋的基本觀念
+- 表格形式，列代表一筆完整資料的紀錄 (records)，欄代表某一種類資料型別 (data)，而欄位代表一完整數據，也是搜尋的關鍵 (search key)。
+  
+例 : 單看 greece 本質上是一個字串資料，賦予 country 屬性他被視為一國家名稱，具有意義。
+
+| city | country | population |
+| :------: | :-----: | :-----: |
+| athens | greece |  25000000  |
+
+## 搜尋的基本運算
+retrieve 搜尋，取回 \
+The ADT table
+- Our table assumes distinct search keys
+  - Other tables could allow duplicate (重複) search keys
+- The traverseTable operation visits table items in a specified order
+  - One common order is by sorted search key
     
-    } // 預設建構函數
-    ```
-### 解構子 (destructors)
-  - 銷毀物件實例：解構函數在物件的生命週期結束時自動調用，負責釋放物件使用的資源，並進行其他清理工作，以確保內存和資源被適當回收。
-  - 每個類別僅有一個解構函數：每個類別只能有一個解構函數，且名稱為 ~ 加上類別名（例如 ~Sphere()），無需參數且無返回值。
-  - 許多類別可省略解構函數：如果類別不包含動態分配的資源（如指標或外部資源），通常不必定義解構函數。編譯器會自動生成一個默認的解構函數，負責基本的資源釋放。 
-  - 當前使用編譯器生成的解構函數：若沒有特定清理需求，可以直接使用編譯器自動生成的解構函數。
-### 命名空間 (namespace)
-- 命名空間的機制 : 將宣告和定義邏輯分組到共同的聲明區域中的機制。
-  - 將相關的類別、函數、變數等放在同一區域內，以便組織程式碼、避免名稱衝突。
-- 命名空間的內容可以由命名空間**內部**或**外部**的代碼存取。
-- using 聲明：使用 using 聲明可以將命名空間中的元素名稱直接引入當前作用域，從而避免多次使用"::"。
-- using namespace ：使用 using namespace 可以引入整個命名空間的所有成員，便於在當前作用域內直接使用命名空間的內容，但要小心名稱衝突。
-### 例外狀況 (exceptions)
-- 一種執行過程中處理錯誤的機制
-- 拋出例外 (Throwing an Exception)：當函數或程式碼區段遇到錯誤情況時，可以用 throw 關鍵字來拋出例外，指示程式發生了異常。
-- 捕獲和處理例外 (Handling an Exception) ：使用 try 和 catch 區塊來處理異常情況。
-  - try 區塊 ：包含可能拋出例外的程式碼。
-    - 如果發生例外，其餘語句將不再執行，會直接跳至相應的 catch 區塊進行處理。
-      - 跳出例外後會在離開 try 區塊錢調用區塊內本地物件的解構函數，以確保資源被正確釋放。
-  - catch 區塊 ：用於捕獲特定類型的例外，並提供處理邏輯
-    - catch 區塊可以有多個，以處理不同類型的例外情況。
-    - 當 catch 區塊執行完畢後，控制權將傳遞至該 try-catch 結構後面的第一條語句，繼續執行。
-```cpp=
-// @file Sphere.h
-const double PI = 3.14159;
-class Sphere {
-private:
-    double theRadius;
-public:
-    Sphere();
-    Sphere(double initialRadius);
-    void setRadius(double newRadius);
-    double getRadius() const;
-    // 其他成員函數宣告...
-};
-```
+Implement
+ - Linear implementations
+   - Unsorted : array based or pointer based
+   - Sorted : array based or pointer based (鏈結串列)
+   - Easy to understand conceptually
+   - May be appropriate for *small* tables or *unsorted* tables with **few deletions**
+- Nonlinear implementations
+  - Binary search tree (指定 key)
+  - Is usually a better choice than a linear implementation
+  - A **balanced** binary search tree
+    - **Increases the efficiency efficiency of the table operations** 
 
-Implementation File (.cpp)類別的具體實作，即程式的運算邏輯與如何完成實作。
+|       | Insertion | Deletion | Retrieval | Traversal |
+| :---: | :---: | :---: | :---: | :---: |
+| Unsorted array based   | O(1) | O(n) | O(n)     | O(n) |
+| Unsorted pointer based | O(1) | O(n) | O(n)     | O(n) |
+| Sorted array based     | O(n) | O(n) | O(log n) | O(n) |
+| Sorted pointer based   | O(n) | O(n) | O(n)     | O(n) |
+| Binary search tree     | O(log n) | O(log n)    | O(log n) | O(n) |
+註 : 循序搜尋，陣列資料整個往前移動 O(n)
 
-```cpp=
-// @file Sphere.cpp
-#include "Sphere.h"
+## Binary Search tree
+ADT table 的二元搜尋樹實現的效率與樹高有關。
+- Height of a binary search tree of *n items*
+  - Maximum : n
+  - Minimum : ⎡ log<sub>2</sub>(n + 1) ⎤
+  - Sensitive to the order of insertions and deletions
 
-Sphere::Sphere() : theRadius(1.0) {}
+其他兩種類的平衡二元搜尋樹在插入和刪除操作後仍能保持平衡。(樹高基本低於二元搜尋數)
+1. (1) 2-3 tree
+2. (1) 2-3-4 tree
+3. (2) AVL tree
+4. (2) Red-black tree
 
-Sphere::Sphere(double initialRadius) {
-  if (initialRadius > 0)
-    theRadius = initialRadius;
-  else
-    theRadius = 1.0;
-}
+## Binary Search tree vs. 2-3 tree
+樹葉一定在同一層 ( 從底部新增資料，若遇到 3-node，則排序後將中間值上提並其餘分裂成兩節點。)\
+3-05 picture[]
 
-void Sphere::setRadius(double newRadius) {
-  if (newRadius > 0)
-    theRadius = newRadius;
-   else
-     theRadius = 1.0;
-}
+2-3 tree 最差的情是二元樹最好的的情況 - **樹高越高效率越不好**。
 
-double Sphere::getRadius() const {
-  return theRadius;
-}
-```
-- 實現 ADT 的模組化：
-  - 透過分離介面和實作，將功能定義於 header file、具體實作於 implementation file，讓使用者只需引用 header file 即可使用類別功能而不需了解內部實作。確保了即使修改實作也不會影響使用者，只要介面保持不變，其他程式無需重編譯。
+### 2-3 tree : Insert
+將項目 (key) I 插入 2-3 樹：
+- step 1 : 項目 I 向下尋找該插入的位置，直到 **葉節點**。
+  - 如果節點裡只有一個 key 就以二元樹的性質。
+  - 如果如果節點裡有二個 key ，比節點的 key ，最大大向右，比最小小向左，介於之間往中間。
+- step 2 : 將新項目 I 插入該節點並排序。
+  - 如果插入後，該葉節點僅包含 **兩個** 項目，則插入完成不須分裂。
+  - 如果插入後，該葉節點包含 **三個** 項目 (full)，則將該節點 **分裂** 為兩個節點 n1 和 n2，調整該節點的子節點。（遞迴處理）
+    - step 3 : 將排序後的中間值往上提，連接分裂的兩個節點。
+      - 如果有父節點，則中間值新增至父節點的 key。(重複 step 2)
+      - 如果沒有父節點 (root)，將根節點拆分為兩個節點。創建一個新的根節點連接其餘兩節點。(樹高增加)
+  
 
-# CH3
-## 指標與鏈結串列 - Pointers and Linked lists
-- 可以比較彈性的擴充，但是每個位置都是依據前一個位置的指標指著去找到後一個位置。
-- head是唯一可以用程式找到，若後續串列其中一個位置遺失，後面的資料很如容易找不到。
-- 相關應用 : 網路、樹狀圖
-### 陣列跟鏈結串列在變動資料上的差別
-- 陣列 : 陣列有**固定**大小，每次插入或是刪除資料，需要**移動**資料位置。
-- 鏈結串列 : 鍊結串列的大小可以根據需要**增長**，每次插入或是刪除資料，不需要移動資料位置。
+註 : 插入的值是隨機的，插入後一定要排序。
 
-### 指標 (Pointer) : 指標包含記憶體空間的位置或記憶體中的位址。
-- 宣告方式 :
-  ```cpp
-  int *p; //初始未定義，但不為 NULL
-  ```
-- 指標位址上內容 ：
-  ```cpp
-  *p //p指向的儲存空間
-  p = &x; //p儲存x的位址，指向x的儲存空間。
-  ```
-  ### 動態配置
-  配置記憶體 : 指定資料類型分​​配記憶體，並傳回指向該記憶體的指標。
-  ```cpp==
-  p = new int;
-  ```
-  釋放記憶體 : 釋放記憶體空間，將記憶體傳回給系統以供**重複使用**，使其可供其他進程使用並防止記憶體洩漏。
-  - 一定要先 "delete" 變數再將變數設為 "NULL"，以防止記憶體洩漏 (memoery leak)
-   ```cpp==
-  delete p;
-  p = NULL //設為NULL避免指標已釋放，指標本身仍然保存現在已釋放的記憶體的位址。
-  ```
+s1 : 1 node，2 node 分支
+s1 : 分裂 : 有父節點
+s2 : 分裂 : 無父節點
 
-## 動態陣列配置
+![IMG_9950](https://github.com/user-attachments/assets/dfab7c31-bf8b-4900-bac5-8ba6f30744dc)
 
-- 配置動態陣列 ：
-  ```cpp
-  int arraySize = 50;
-  double *anArray = new double[arraySize];
-  ```
-- 陣列名是指向其第一個元素的指標 :
-  ```cpp
-  anArray[2] ≡ *(anArray + 2); //陣列名稱 = 指標
-  ```
-- 配置陣列大小 ：
-  ```cpp
-  double *oldArray = anArray;
-  anArray = new double[3 * arraySize];
-  delete[] oldArray;
-  ```
+### 2-3 tree : Delete
+有先後順序，rotate 不行才做 merge。
 
-### 指標鍊結串列
-- 結構 : 每個節點包含節點資料跟指向下一個節點的指標
+To delete an item I from a 2-3 tree
+1. Locate the leaf at which the search for I would terminate
+2. Delete I from the leaf
+3. If the leaf now contains one item, you are done
+4. If the leaf now contains no item, choose one of the following operations to fix
+  - (a) Redistribute the values: retain the tree structure
+  - (b) Merge into a leaf: its parent has one less child
+    
+註 : Check if the nearest sibling is 3-node or 2-node.
+
+1. Redistribute values - rotate (借用 borrow)
+- 情況一 : 子節點一邊有 2 key 一邊只有 1 key。
+- 刪除後出現空節點，且兄弟節點可借值，則由父節點填補空節點，並將兄弟其中一個 key 上移。註 : 父節點往右，key 補最大值上去，父節點往左，key 補最小值上去。
+- 情況二 : 子節點兩邊都只有 1 key。
+- 刪除後出現空節點，沒有兄弟節點可以補，改作合併。
+2. Merge into a leaf - merge
+- 刪除後出現空節點，把空節點移除，把父節點拉下來，合併節點。
+- 情況一 : 父節點有 2 key，子節點都 1 key，
+  -  刪除左子 : 移除刪除節點，父節點最大值向下左合併。
+  -  刪除右子 : 移除刪除節點，父節點最小值向下右合併。
+  -  刪除中間 : 以上都可以。
+- 情況二 : 父節點有 1 key，子節點都 1 key。
+  - 刪除後父節點向下合併。
+3. Redistribute values and children - rotate
+- 內部節點，在 rotate 後 key 變少，原節點下面的子節點也要移動到合適位置。
+4. Merge into an internal node - merge
+-  內部節點，合併時，空節點下面的子節點也要合併過去。
+5. special case : Delete the root 
+- 如果樹根是空的就刪除，樹高減一
+
+- 範例 : 刪除葉節點
+
+![IMG_9951](https://github.com/user-attachments/assets/8208c611-5e8d-45a7-9510-df7a0bd1030f)
+
+![IMG_9953](https://github.com/user-attachments/assets/eee4f6a6-a85d-4a70-a681-c03f6c211c2f)
+
+- 範例 : 刪除內部節點
+
+![IMG_9952](https://github.com/user-attachments/assets/07c54155-7a70-4bf1-a2d5-80a0567e548d)
+
+- spical case
+
+![IMG_9954](https://github.com/user-attachments/assets/62a66964-8d44-4519-b57b-a70db808992a)
+
+In - order
+
+其他例子 : 刪除 root (有兩個 key) 後，把節點的後繼者 (successor) 補上來 (右子樹的最小鍵)，刪除 Successor 原來的位置，如果導致鍵不足，則進行借用或合併。(統一跟 successor 交換)
+
+## 2-3-4 tree 
+以空間換取時間，相較2-3 tree 不要遞迴，把往上的遞迴拿掉。
+
+### 2-3-4 tree : Insert
+- step1 : 從 root 前往 leaf 的過程中，若遇到 3-node，則先分裂，以確保不會出現即將爆掉的節點)
+  - 與 2-3 樹相比，無需自底向上遞迴調整，而是直接在 leaf 插入。
+- step2 : 到達 leaf 後，直接插入。
+- step3 : 對 key 進行排序。
+
+### 2-3-4 tree : Delete
+要刪除之前如果要刪除的節點的父節點只有一個 key 就先做合併才將要刪除的值刪除 (至少必須要有兩個 key)，避免空掉讓後面底較好維護。
+
+
+# 第四章 由上而下的成長得的平衡樹
+## AVL Tree (balance tree) : Main Idea
+- **AVL Tree**是一種自**平衡二元搜尋樹**，其設計目的是為了讓每個節點的左右子樹高度差（Balance Factor, BF）不超過1。這是因為讓兩邊子樹完全平衡（高度相同）在實務上非常困難，尤其當資料插入順序不均時。 因此，AVL 樹允許每個節點的左右子樹高度最多差一，並透過**旋轉（rotation）**操作來維持平衡。
+
+- AVL 樹的基本原則是：從根開始向下尋找到葉節點，小的值放左邊，大的值放右邊（Binary Search Tree 的基本原理），每個節點都可以是潛在的平衡點，並且都需要檢查其是否失衡（即 BF > 1 或 BF < -1）。
+- 當失衡發生時，根據不同的失衡情況進行單旋轉或雙旋轉來重新平衡樹結構。
+
+- 每個節點樹高計算方式：以某節點為根的子樹，其高度為從該節點到其最深葉節點的路徑長度。就是某節點的左子樹跟右子樹相比，比較大的，樹高加一就等於目前節點的樹高。
+- 平衡因子 BF（Balance Factor）計算方式 : BF = 左子樹高度 - 右子樹高度
+
+## AVL Tree: Property
+- 每當插入或刪除節點時，AVL Tree 會從該節點往上檢查是否失衡。若有節點的平衡因子（BF）超出範圍（不在 -1、0、1 之間），則進行旋轉（rotate）來恢復平衡。
+- 旋轉操作只會影響該失衡節點與其子樹節點的位置，其他路徑上的節點只需更新樹高，不需改變結構。
+- 旋轉分 **單旋轉** **複式旋轉**，   
+## AVL Tree: Action
+旋轉分兩類四種判斷條件是依 **不平衡節點的子樹方向，新增節點不平衡的節點方向**\
+也可以用直接上移的方式重新接好。有大小順序，一定是中間的往上移。
+- single rotation (RR，LL) : 只需旋轉一次。
+- LL : BF = +2，左子 : +1 or 0
+- RR : BF = -2，右子 : -1 0r 0
+- 旋轉完後樹高不會變高
+  
+![imageLL](https://github.com/user-attachments/assets/d5f175ad-63b8-4818-89f1-d9aab0854f16)
+![111RR](https://github.com/user-attachments/assets/56d3f5e8-88fd-46e6-9630-9d145ec32dc2)
+
+- Double rotatinn (RL，LR) : 需旋轉兩次。
+- LR : BF = +2，左子 : -1
+- RL : BF = -2，右子 : +1
+- 旋轉完後樹高會變低 
+
+  
+較慢 :
+![image1](https://github.com/user-attachments/assets/25b0b280-bcab-4825-ba04-3b1561745cd4)
+
+較快 :
+![image2](https://github.com/user-attachments/assets/81e668c2-ed41-416a-9755-6370f814a1ce)
+
+RL 是 LR 的方向反過來。\
+delete : 若是葉節點則可直接刪除；若不是，則以中序後繼取代其值，再將該節點與葉節點交換後刪除。刪除後需從刪除點一路往上回溯，更新樹高並檢查是否失衡。若失衡，則根據 BF 值進行左旋、右旋或複旋，恢復平衡。
+
+## AVL vs 2-3-4 Tree
+AVL : 較 2-3-4 Tree 花的空間少
+2-3-4 tree : 樹高變低時較效率提升，但佔的空間較多  
+
+
+## Red-Block tree 紅黑樹 (B-tree)
+### Main Idae : representation
+紅黑樹是一種特殊的二元搜尋樹（Binary Search Tree），透過節點的紅色與黑色標記，來模擬 **2-3-4 樹（2-3-4 Tree**）的節點結構，使樹在動態操作中保持平衡。
+紅黑樹可將 2-node、3-node、4-node 分別對應為黑黑（BB）、紅黑（RB 或 BR）、紅紅（RR）等配置，藉此避免產生嚴重傾斜的樹形結構，確保查找、插入與刪除操作維持在穩定的對數時間內，達到兼具效率與節省空間的效果。
+
+性質與特點
+- 紅黑樹為二元搜尋樹 (模擬 **2-3-4 tree** 的節點結構)
+- → 透過紅黑顏色標記 2-node (BB)、3-node (RB or BR)、4-node (RR)
+- → 可使用旋轉（Rotation）來保持平衡，就像 AVL 樹一樣。(避免結構偏斜)
+
+- 效能與 2-3-4 樹相當，但儲存空間更省
+- → 不需要額外的節點儲存多個鍵或指標。
+- 插入與刪除操作簡單，且易於維持平衡
 ``` cpp=
-struct Node {
-  int item
-  Node *next;
-};
+//節點紀錄內容
+class RBTreeNode
+{
+  TreeItemType item;
+  RBTreeNode*  leftChildPtr;
+  RBTreeNode*  rightChildPtr;
+  colorType    leftColor;
+  colorType    rightColor;
+}
 ```
-- 頭指標(head) : 指向整個鏈結串列的開頭，如果 **head = NULL** 代表鍊結串列為**空 (empty)**。
-  - head 是訪問串列的唯一入口，所以在實作插入或是刪除時，走訪串列的過程需要用另一個指向 head 的指標去走訪，確保 head 指向的位置不會被更動。
-### 複製建構子和解構子 (Constructors and Destructors)
-  - 複製建構子主要負責在創建鏈結串列物件時初始化其成員變數，通常包括設定 size 和 head 的初始值。
-  - 複製建構函式的預設行為執行淺層複製，這可能會在處理動態分配的記憶體時導致問題。為了避免這些問題，通常會實施深層複製。
-    - 淺層複製和深層複製 (shallow copy and deep copy)
-      - 淺層複製 ：只複製head指標跟串列大小，head是指向原鍊結串列，
-        - 如果任一物件進行修改，另一物件也會受到影響。
-      - 深層複製 ：複製整個鍊結串列，包括head、串列大小、整個鍊結串列內容。
-        - 每個複製的鏈結串列都有其獨立的節點，相當於同樣內容但是存取在不同位址。需自訂義複製建構子。
-  - 如果省略複製建構函數，編譯器會產生一個預設建構子，但它僅適用於使用**靜態分配陣列**的情況，不合適動態配置的鏈結串列。
-  - 動態配置記憶體，需在解構時主動去釋放記憶體空間，因為系統無法預知物件的具體結構或管理方式，所以不會自動清除程式動態分配的記憶體。
+picture[4 node] 
+picture[3 node]
 
-## 比較基於陣列與基於指標的實作
+### Red-Block Tree vs 2-3-4 Tree
+紅黑樹的限制條件
+1. 節點是紅色或黑色。
+2. 根是黑色。
+3. 指向新加入節點的指標必須是紅色的
+4. 所有葉節點指向的子節點都是黑色（葉節點是指向NIL節點 - 空指標或外部節點，不是指實際有資料的節點）。
+5. 不能有連連續兩的紅色相連。如果有就要用 AVL 裡的旋轉。
+6. 從根到葉節點每條路徑的黑色個數都一樣 (高度固定的)
+   - 黑色個數等於 2-3-4 樹的實際樹高，故紅色最多跟黑色一樣。
+   - 紅黑數的樹高最高不大於 2-3-4 TREE 的**兩倍** (紅加黑)
+5. 從任一節點到其每個葉子的所有簡單路徑都包含相同數目的黑色節點。
 
-- 大小 (Size)
-  - 可調整大小的陣列在擴大時，可能會浪費儲存空間和時間。
-  - **鏈結串列**會隨著需要動態增長或縮小。
-- 儲存需求 (Storage Requirements)
-  - 基於陣列的實作相比基於指標的實作，在抽象資料型別（ADT）的每個項目上**需要更少的記憶體**。
-- 檢索 (Retrieval)
-  - 基於陣列 ：存取第 i 個元素的時間是**常數 (Constant)**，與 i 無關。
-  - 基於指標 ：存取第 i 個元素的時間**取決於 i**，需要從頭開始遍歷直到第 i 個節點。
-- 插入和刪除 (Insertion and Deletion)
-  - 基於陣列 ：需要**移動**資料，將變動資料位置之後的資料全部往後或是往前。
-  - 基於指標 ：需要**遍歷** (traversal)，走訪到要變動資料得位置。
+放的位置不同而有不同的 Red-Block Tree 結構，至少一種畫法 (3 noed 有兩種畫法。)\
+用一個節點的記錄的顏色即可判斷節點是什麼類型的 node。\
 
-- 陣列 (Arrays) vs. 連結串列 (Linked Lists)
-  - 基於陣列的列表使用**隱式 (implicit)** 排序方式，基於指標的列表使用 **顯式 (explicit)**排序方式。
-  - 陣列允許直接存取 (direct access)元素，而鍊結串列需要遍歷 (traversal)。
-  - **擴大陣列的大小需要複製**。
+- 插入資料時，要判斷這個節點是不是滿的，需要判斷的是 4 node。
+- 刪除資料時，要判斷這個節點是不是只有一個 key，需要判斷的是 2 node。
 
-### 使用檔案儲存和恢復鏈結串列
-- 使用**外部檔案**來保持列表在程式運行間的狀態。
-- 只將**資料**寫入檔案，不存**指標**。- 指標當電腦關閉後就會重置。
-- 透過將每個項目放置於鏈結串列的**末端**來重新創建列表，所以每一次重建的指標位置是不同的
-  - 使用**尾端 (tail)**指標來促進將節點加入鏈結串列的末端。
-  - 將第一次插入視為特殊情況，將尾端指標設為頭指標。  
+### Red-Block Tree - spilt()
+最需要關注的是 4 node 的分裂。(子節點都是紅色) 
+- 父節點是 2 node
+  - recolor。
 
-### 鏈結串列的種類
-1. **單向鏈結串列**：每個節點指向下一個節點。
-2. **循環鏈結串列**：最後一個節點指回頭節點。
-3. **雙向鏈結串列**：每個節點有指向前一個和下一個節點的指標。
+![2 NODE](https://github.com/user-attachments/assets/9cbc2c3d-9103-42b1-bd80-fdf08584b4c0)
+
+- 父節點是 3 node : 有四種情況
+- grandparent is in the 3-node
+- sibling is not in the 3-node
+  - recolor，(+ LL rotation)
+    - Pointer to its sibling is red
+    - Pointer to its parent is red
+    
+![image1111](https://github.com/user-attachments/assets/c40ff727-e63c-49b2-ab8b-353d3dfc7128)
+
+  - recolor，(+ RR rotation)
+    - Pointer to its sibling is red
+    - Pointer to its parent is red
   
-## 圓形鍊結串列 (Circular Linked Lists)
-- **最後一個節點指向第一個節點**，形成環狀結構。
-- 每個節點都有**後繼節點 (successor)**。
-- 循環連結串列中的節點不包含NULL，不會有指向空指標的情況。
-- 存取最後一個節點需要遍歷整個鏈結串列。
-- 讓**外部指標**指向**最後一個節點**，而非第一個節點。
-  - 這樣可以在不遍歷整個列表的情況下，直接存取第一個和最後一個節點。
-- 要變動資料仍需要從偷開始遍歷，無法直接透過索引存取元素。
-- 可以從任意節點開始遍歷整個串列，適合需要循環存取的任務。
+![image2222](https://github.com/user-attachments/assets/9b9e0ece-106e-40e5-9993-995198bd3ecf)
   
-## 變形：虛擬頭節點 (Dummy Head Node)
-- 總是存在，即使鍊結串列為空。
-  - 它是新增在串列開頭的額外節點，不包含有效的資料只是用來簡化鏈結串列的操作，通常指向鍊結串列中的第一個實際資料節點。 
-- 插入和刪除操作會將 *prev* 指標初始化為指向**head dummy node**，而不是 *NULL*。 
-  - 消除判斷串列第一個元素的操作的**特殊情況**。
-    - 由於有虛擬頭節點，插入或刪除操作不需要分別處理頭節點和其他節點，從而去除了例外狀況。  
+  - recolor，(+ LR rotation)
+    - Its parent is a right child
+    - It is a left child
+    - Pointer to its parent is red
+  - recolor，(+ RL rotation)
+    - Its parent is a left child
+    - It is a right child
+    - Pointer to its parent is red
+
+![image33333](https://github.com/user-attachments/assets/1c1e72ff-6b66-4f05-a316-95ae08f26575)
+
+- special case : 根結點分裂
+  - recolor， 紅變黑。
 
 
-## 變形：雙向連結串列 (Doubly Linked Lists)
-- 每個節點都指向其前驅 (precede) 和後繼 (next)的指標。
-- 插入和刪除操作比單向連結串列更複雜。
-- 通常包含一個虛擬頭節點 (dummy head node)，以簡化程式消除處理特殊情況。
-- 常用環狀 (circular) 結構來消除特殊情況。
-- 雙向結構不僅具備環狀結構的優點，還能在任一方向進行遍歷，使我們更方便地刪除或插入節點。
-- 因為需要紀錄前後節點位置，所需空間相對多。
+### Red-Block Tree - insert
 
-# CH4
-遞迴作為解決問題的技巧
-## Defining Languages
-- 規範使用者哪些東西是合法，在範圍內即是合法。
-  - 語言提供了符號集合，而語法定義了如何將這些符號組合成合法的表達形式。 
-    - 語言 (language)
-      - 語言是一組由符號組成的字串集合，符合該語言的語法和規則。 
-        - 形式語言 (formal languages)
-        - 正則語言 (Regular Language)
-    - 語法 (grammar)
-      - 語法是用於構成語言中合法字串的規則集合。 
-        - 分支 : 正規運算式/正規表示式 (regular Expresion)
-### 語法的基本概念
-- 語法中使用的符號 : 用符號描述規範。
-- x | y：表示 "x or y" ，表示字串可以是 x 或 y。
-- x y 或 x • y：表示 x 之後接 y，也就是 x 和 y 按順序組合而成。
-  - •（連接符號）：表示連接或追加，即將兩個符號或字串串接在一起，形成更長的字串。
-- <word>：這種表示法表示**任何符合 word 定義的實例**，即泛指該詞所代表的結構或形式。
-- 實作 : 遞迴，基本情況就是剩餘一個字元時，判斷是否符合語法 
-  ```plaintext
-  - <addtion> = <number> + <addtion> | <number>
-  - <number> = <number><digit> | <digit>
-  - <digit> = 0|1|2|3|4|5|6|7|8|9
-  ```
-### 代數表達式 (Algebraic Expressions)
-中序 (infix)、前序 (prefix)、後續 (postfix)，指的是運算子的位置。  
-  - **中序表示法 (Infix expressions)**：
-    - 運算子出現在操作數之間，這是最常見的表達式形式，人類易於閱讀。
-    - 範例 ："a + b"
-    - 加上括號來明確運算順序，而不是依賴運算符的優先級來判斷順序。
-      - 程式是一個一個讀，所以若是沒設先後條件會不知道哪個要先做。 
-      ```plaintext
-      <infix> : <identifier> | (<infix><operator><infix>)
-      <operator> : + | - | * | /
-      <identifier> : a | b | ... | z
-      ```
-  - **前序表示法 (Prefix expressions)**：
-    - 運算子出現在操作數之前，相對於中序，是把運算子移到其相對應左括號標記的位置，把括號去除。
-    - 範例 ："+ a b"
-    - 一個前序式後面再接上**非空字串**一定不是前序式。
-      ```plaintext
-      <prefix> : <identifier> | <operator> <prefix> <prefix>
-      <operator> : + | - | * | /
-      <identifier> : a | b | ... | z
-      ```
+紅黑樹中進行搜尋 (search) 與 走訪 (traverse)
+– 使用與一般二元搜尋樹（BST）相同的演算法
 
-  - **後序表示法 (Postfix expressions)**：
-    - 運算子出現在操作數之後，相對於中序，是把運算子移到其相對應右括號標記的位置，把括號去除。
-    - 範例 ："a b +"
-      ```plaintext
-      <postfix> :<identifier> | <postfix> <postfix> <operator>
-      <operator> : + | - | * | /
-      <identifier> : a | b | ... | z
-      ```
-   - 相較於中序式，前序式跟後續式的優點 :
-      - 無優先級規則 (No precedence rules) : 不用擔心讀的順序，因為讀的順序義唯一的。
-      - 無結合律規則 (No association rules)：
-      - 無括號 (No parentheses)：
-      - 簡單語法 (Simple grammars)：
-      - 直觀的識別和求值算法
+插入 (insert) / 刪除 (delete) 演算法
+- 根據 2-3-4 樹的演算法進行調整，以配合紅黑樹的表示方式
+- 在紅黑樹中，當遇到對應於 4-node 的節點時，只需要簡單地變換顏色即可完成分裂
+- 若需要進一步調整結構，則透過 **指標的變換（旋轉)** 來縮短樹的高度
 
-## 回溯法 (Backtracking)
-- 回溯法是一種通過猜測解決方案並在遇到僵局/死巷時退回的策略。
-- **遞迴 (Recursion)** 與 **回溯法**結合使用以解決問題，尤其是需要探索所有可能解或查找最優解的問題。
-  - 例 : 八后問題、迷宮探索、數獨，最短路徑等。
+main idea
+- 跟 2-3-4 tree 一樣，從根開始往下尋訪到葉節點，如果遇到節點有兩個紅指標 ( 4 node ) 就先分裂 ( spilt() )
+- 找到位置新增節點並用 **紅色** 接起來
+- 新增後如果遇到連續兩個紅色就旋轉。
 
-## 八后問題 (Eight-Queens Problem)
-- 削減不必要組合的觀察法則 (Pruning Observation) : 先用規則排除不可能，減少範圍。
-- 將八個皇后放置在棋盤上，使得任意兩個皇后不會互相攻擊。
-1. **基本情況 (Base case)**：
-   - 如果已經沒有更多列需要考慮，
-2. **遞迴情況 (Recursive step)**：
-   - 如果能**成功地**在當前列放置一個皇后。
-     - 繼續考慮下一列。
-   - 如果**無法在當前列放置皇后**
-     - 需要**回溯 (backtrack)**，探索其他位置。
-## 遞迴和數學歸納法 (Recursion and Mathematical Induction)
-- 遞迴和數學歸納法都使用基本情況來解決問題。
-- 兩者都是將問題分解成更小的問題逐步解決。
-  - 遞迴通過將問題分解為規模更小的相同問題，逐層遞迴來構建完整解答。
-  - 數學歸納法則通過假設小規模問題成立（即「歸納假設」），然後證明更大規模的問題也成立。
-- 可以用數學歸納法來證明遞迴算法的正確性/特性。
-- 歸納法可用來分析遞迴算法的時間複雜度，證明寫法需要花多少時間/空間。 
+節點出現**連續兩個紅色指標** 要 **分裂節點** 的情況
+1. 指向兄弟的指標是否為紅色？
+- Yes: recolor -> Case 2. (1)(2)
+2. 指向父節點的指標是否為紅色？
+- Yes: recolor & rotation。
+- No: recolor -> Case 1. (the root, too)
+3. 是父節點的左孩子嗎？新增的節點是左小孩嗎？
+- Left, Left: LL rotation -> Case 2. (1)
+- Right, Right: RR rotation -> Case 2. (2)
+- Left, Right: LR rotation -> Case 2. (3)
+- Right, Left: RL rotation -> Case 2. (3)
+
+註 : special case : 傾斜，沒有分裂但是要旋轉 ( 傾斜越多紅色會越來越往上，旋轉越多 - 耗時 )
+
+### Red-Block Tree vs AVL Tree
+以傾斜樹為例，逐一加入 1 ~ 10
+
+Red-Black Tree ：(因每條路徑黑色一樣，所以還是算在平衡樹 - 2-3-4 tree 性質)
+- 採「鬆散平衡」，只要求紅黑性質不違反。( 較 AVL 不平衡的原因 )
+- 優點：插入/刪除時大多數情況只需調整顏色，不必旋轉，操作較快。
+- 缺點：查詢時平均樹高略高於 AVL，效率稍差。
+
+AVL Tree ：
+- 採「嚴格平衡」策略，要求每個節點左右子樹的高度差 ≤ 1。
+- 優點：查詢效率高（樹高較低）。
+- 缺點：插入/刪除頻繁時，需要較多旋轉操作，維護成本較高。
+
+插入與刪除操作時的差異
+- 若能透過 改顏色（變色） 維持平衡：
+  - Red-Black Tree 會優先變色，不會立即旋轉 - 更省操作。
+  - AVL Tree 無變色機制，必須透過旋轉來恢復平衡。
+
+### Red-Block Tree - delete
+main idea :
+  - 用二元搜尋在紅黑樹裡找到要刪除的節點。
+    - 三種情況 :
+    - 兩個子節點 : 用 **in-order** 找到 **後繼者 (successor)** 做交換，再刪掉。
+    - 一個子節點 : 子節點一定是紅色（根據紅黑樹的性質），可以直接以子節點取代被刪除節點，並將其重新塗黑，這樣就不會破壞從根到葉的黑色節點數量。
+    - Leaf (沒有子節點) : 是黑色或紅色
+  - 重新配置當刪除的節點只有一個子節點且子節點下面還有小孩。
+  - 處理葉節點刪除
+    - 指向葉節點的是紅色直接刪除。
+    - 指向葉節點的是黑色 ( 一定有兄弟黑或紅 )
+      - 指向父節點的是紅色，如果兄弟還有子節點，一定是紅色且只有一層。
+        - 右子節點被刪除
+        1. 兄弟沒有子節點 : recolor
+        2. 兄弟只有右子節點 : LR rotation + recolor
+        3. 兄弟只有左子節點或有兩個子節點 : LL rotation + recolor
+        - 左子節點被刪除
+        1. 兄弟沒有子節點 : recolor
+        2. 兄弟只有右子節點 : RL rotation + recolor
+        3. 兄弟只有左子節點或有兩個子節點 : RR rotation + recolor
+        
+        ![image123222](https://github.com/user-attachments/assets/03bf6a44-1136-4132-a1b1-1b9c77e8e0bc)
+
+      - 指向兄弟的是紅色，兄弟一定有兩個子節點且是黑色。(否則違反連續兩個紅色)
+        - 右子節點被刪除
+        - LL rotation + recolor
+          -  如果兄弟的右子節點，(左子節點旋轉過去就是合法的)。
+          1. 沒有子節點 : 不用在維護
+          2. 只有左子節點 : LL rotation
+          3. 只有右子節點 : LR rotation
+          4. 有兩個子節點 : LL rotation + recolor
+          ![image2345](https://github.com/user-attachments/assets/9ece311c-4650-44ed-bc77-d6df86ce73fc)
+        - 左子節點被刪除 (作法與右子節點被刪除的做法相反)
+        - RR rotation + recolor
+          -  如果兄弟的左子節點，(右子節點旋轉過去是合法的)。
+          1. 沒有子節點 : 不用在維護
+          2. 只有左子節點 : RR rotation
+          3. 只有右子節點 : RL rotation
+          4. 有兩個子節點 : RR rotation + recolor
+    
+      - 指向父節點的是黑色，如果兄弟還有子節點，一定是紅色且只有一層。
+        - 右子節點被刪除
+          - 兄弟沒有子節點 : recolor + ?
+          - ? => Upward recursion 
+          1. Pointer to its parent is red: recolor
+          2. Pointer to any child of its sibling is red: RR rotation + recolor (RL if only the pointer to left child is red)
+          3. Pointer to its sibling is red: RR rotation + recolor + extra check & rotation
+          4. The above pointers are black: recolor + upward recursion
+          - 兄弟只有右子節點 : LR rotation + recolor
+          - 其他情況 : LL rotation + recolor 
+        - 左子節點被刪除
+          - 兄弟沒有子節點 : recolor + ?
+          - ? => Upward recursion 
+          1. Pointer to its parent is red: recolor
+          2. Pointer to any child of its sibling is red: LL rotation + recolor (LR if only the pointer to left child is red)
+          3. Pointer to its sibling is red: LL rotation + recolor + extra check & rotation
+          4. The above pointers are black: recolor + upward recursion  
+          - 兄弟只有右子節點 : RL rotation + recolor
+          - 其他情況 : RR rotation + recolor
+          
+          ![image12345](https://github.com/user-attachments/assets/c783fefb-1536-4956-8b59-606f110f6ae1)
+          ![24534532](https://github.com/user-attachments/assets/b7a85c77-a601-45e0-9cb2-686cbba45b95)
+
+註 : 都是優先在子樹裡找紅色去做旋轉，都沒有才做作改色。\       
+    
+Cases of a leaf pointed to by a black pointer
+1. Is the pointer pointing to its parent red?
+- Yes: recolor or rotation - Case 1.1 2-(a)(b)(c)
+2. Is the pointer pointing to its sibling red?
+- Yes: rotations + recolor - Case 2.1 2-(a)(b)(c)(d)
+3. Does its sibling has any child?
+- Yes: rotation + recolor - Case 3.1 2-(b)(c)
+- No: recolor + upward recursion - Case 3.1 2-(a)
+
+## 總結
+
+![image23總結](https://github.com/user-attachments/assets/2b861803-8bc1-4051-93f9-b511b2223660)
 
 
 
@@ -541,5 +735,7 @@ struct Node {
 
 
 
-  
+
+
+
 
